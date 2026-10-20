@@ -34,9 +34,9 @@ fn vs_main(
     let b = unpack2x16float(vertex.pos_opacity[1]);
     let pos = vec4<f32>(a.x, a.y, b.x, 1.);
 
-    let rot1 = unpack2x16float(vertex.rot[0]);
-    let rot2 = unpack2x16float(vertex.rot[1]);
-    let rot = vec4<f32>(rot1.x,rot1.y,rot2.x,rot2.y);
+    // let rot1 = unpack2x16float(vertex.rot[0]);
+    // let rot2 = unpack2x16float(vertex.rot[1]);
+    // let rot = vec4<f32>(rot1.x,rot1.y,rot2.x,rot2.y);
 
     // TODO: MVP calculations
     out.position = camera.proj * camera.view * pos;
