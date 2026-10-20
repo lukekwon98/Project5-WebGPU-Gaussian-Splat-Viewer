@@ -39,7 +39,7 @@ fn vs_main(@builtin(vertex_index) in_vertex_index: u32, @builtin(instance_index)
     var ndcPos = camera.proj * camera.view * pos;
     ndcPos = ndcPos/ndcPos.w; //we do this now which is ok because the pipeline will divide by 1 anyway
 
-    //triangle ship order (reuses the previous triangle's last to vertices)
+    //triangle strip order (reuses the previous triangle's last to vertices)
     if(in_vertex_index == 0){
         out.position = vec4<f32>(ndcPos.x-0.005,ndcPos.y-0.005,ndcPos.z,1.);
     }
