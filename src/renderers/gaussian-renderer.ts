@@ -42,7 +42,7 @@ export default function get_renderer(
 
   const splat_buffer = device.createBuffer(
     {label: "splat buffer",
-    size: pc.num_points * 48,
+    size: pc.num_points * 64,
     usage: GPUBufferUsage.STORAGE});
 
   const rendersettings_buffer = device.createBuffer(
@@ -53,7 +53,7 @@ export default function get_renderer(
   //[vertices per instance, number of instances, first vertex, first instance] (4x4)
   //this indirect rednering uses instanced rendering, but they're separate concepts
   device.queue.writeBuffer(indirect_draw_buffer, 0, new Uint32Array([4, pc.num_points, 0, 0]));
-  device.queue.writeBuffer(rendersettings_buffer, 0, new Float32Array([1.0, 0.0]));
+  device.queue.writeBuffer(rendersettings_buffer, 0, new Float32Array([1.0, pc.sh_deg]));
 
   const nulling_data = new Uint32Array([0]);
 
@@ -83,7 +83,8 @@ export default function get_renderer(
     label: 'compute gaussians',
     layout: preprocess_pipeline.getBindGroupLayout(1),
     entries:[
-      {binding: 0, resource: {buffer:pc.gaussian_3d_buffer}}
+      {binding: 0, resource: {buffer:pc.gaussian_3d_buffer}},
+      {binding: 1, resource: {buffer:pc.sh_buffer}}
     ]
   });
 
@@ -120,12 +121,34 @@ export default function get_renderer(
       fragment: {
         module: gaussian_render_shader,
         entryPoint: 'fs_main',
-        targets: [{format: presentation_format}] //pixel format of the canvas texture being rendered to
+        targets: [
+          {format: presentation_format,
+            blend:{
+              color:{
+                srcFactor: 'src-alpha', //fragment we're drawing right now
+                dstFactor: 'one-minus-src-alpha', //pixel already in the render target
+                operation: 'add', //combine (colors*alhpas + colord*(1-alphas))
+              },
+              alpha: { //controls resulting opacity
+                srcFactor: 'one', //keep the incoming alpha as is
+                dstFactor: 'one-minus-src-alpha', //retain the existing alpha in proportion to transparency (1 - incoming alpha)
+                operation: 'add', //combine (alphas + alphad(1 - alphas))
+              },
+            },
+        }], //pixel format of the canvas texture being rendered to
       },
       primitive: {
         topology: 'triangle-strip'
       }
   });
+
+  const camera_render_bind_group = device.createBindGroup({
+    label: 'render camera',
+    layout: quad_render_pipeline.getBindGroupLayout(0),
+    entries:[
+      {binding: 0, resource: {buffer: camera_buffer}}
+    ]
+  })
 
   const splat_render_bind_group = device.createBindGroup({
     label: 'gaussian render bind group',
@@ -155,7 +178,7 @@ export default function get_renderer(
     preprocess_pass.end();
 
     //mem source is first this time, offset(keys_size is the first field), destination, destination offset, memcpy size
-    //sorter.sort(encoder);
+    sorter.sort(encoder);
     encoder.copyBufferToBuffer(sorter.sort_info_buffer, 0, indirect_draw_buffer, 4, 4);
 
     const pass = encoder.beginRenderPass({
@@ -169,6 +192,7 @@ export default function get_renderer(
       ],
     });
     pass.setPipeline(quad_render_pipeline);
+    pass.setBindGroup(0, camera_render_bind_group);
     pass.setBindGroup(1, splat_render_bind_group);
 
     pass.drawIndirect(indirect_draw_buffer, 0);

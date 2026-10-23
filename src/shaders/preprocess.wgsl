@@ -46,7 +46,7 @@ struct CameraUniforms {
 
 struct RenderSettings {
     gaussian_scaling: f32,
-    sh_deg: f32,
+    sh_deg: f32, //spherical harmonics degree
 }
 
 struct Gaussian {
@@ -59,14 +59,27 @@ struct Splat {
     //TODO: store information for 2D splat rendering
     mean_ndc: vec3<f32>,
     cov_inv: mat2x2<f32>,
-    ssaabb_halfextent: vec2<f32>
+    ssaabb_halfextent: vec2<f32>,
+    color: vec4<f32>
 };
+
+//a way to represent a value that changes with direction, here this value is a Gaussian's RGB color
+//Gaussian color changes depending on which position you're looking at it from
+//uses a fixed set of basis functions (patterns defined over all directions on a sphere)
+//each coeff controls how much one pattern contributes. degree: controls how detailed the directional variation can be (0-constant color, 1-broad directional variation 3-finer variation)
+//like combining sine waves to approximate a sound, but SH combines patterns on a sphere to approximate how color varies with direction
+//in gaussian splatting, these coefficients are already learned during training and saved to the PLY file, therefore we just read them
+struct SphericalHarmonics{
+    coefficients: array<u32, 24>, //will unpack to 48 half precision floats
+}
 
 //TODO: bind your data here
 @group(0) @binding(0) 
 var<uniform> camera: CameraUniforms;
 @group(1) @binding(0) 
 var<storage, read> gaussians_list: array<Gaussian>;
+@group(1) @binding(1)
+var<storage, read> sh_list: array<SphericalHarmonics>; 
 @group(2) @binding(0)
 var<storage, read_write> sort_infos: SortInfos;
 @group(2) @binding(1)
@@ -80,10 +93,25 @@ var<storage, read_write> splats: array<Splat>;
 @group(3) @binding(1)
 var<storage, read> render_settings: RenderSettings;
 
-/// reads the ith sh coef from the storage buffer 
+// reads the ith sh coef from the storage buffer 
+//c_idx is the index of the SH coefficient that we want to read (0-15)
 fn sh_coef(splat_idx: u32, c_idx: u32) -> vec3<f32> {
     //TODO: access your binded sh_coeff, see load.ts for how it is stored
-    return vec3<f32>(0.0);
+    let sphericalHarmonics = sh_list[splat_idx];
+
+    //[r g][b r][g b][r g][b r][g b][r g][b r][g b][r g][b r][g b]
+    //coefficient 3 -> rIdx 9 gIdx 10 bIdx 11
+    let rIdx = 3 * c_idx;
+    let gIdx = 3 * c_idx + 1;
+    let bIdx = 3 * c_idx + 2;
+
+    //r = [b r] g,b = [g b]
+    let r = unpack2x16float(sphericalHarmonics.coefficients[rIdx/2]);
+    let g = unpack2x16float(sphericalHarmonics.coefficients[gIdx/2]);
+    let b = unpack2x16float(sphericalHarmonics.coefficients[bIdx/2]);
+    
+    //r[1] g[0] b[1]
+    return vec3<f32>(r[rIdx % 2], g[gIdx % 2], b[bIdx % 2]);
 }
 
 // spherical harmonics evaluation with Condon–Shortley phase
@@ -230,6 +258,14 @@ fn preprocess(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgr
     splat.cov_inv = (1.f/det) * mat2x2<f32>(cov2D[1][1], -cov2D[1][0], -cov2D[0][1], cov2D[0][0]);
 
     splat.mean_ndc = vec3(ndc.x,ndc.y,ndc.z);
+
+    // Spherical harmonics
+    let camPos = camera.view_inv[3].xyz;
+    let camToGaus = normalize(pos.xyz - camPos);
+    
+    let opacity = 1/(1 + exp(-b.y)); //sigmoid - declaring as const (let) in 1 straight equation is faster?
+
+    splat.color = vec4<f32>(computeColorFromSH(camToGaus, idx, u32(render_settings.sh_deg)), opacity);
 
     let splatIdx = atomicAdd(&sort_infos.keys_size, 1u); //must claim a slot with atomicAdd
     splats[idx] = splat;
