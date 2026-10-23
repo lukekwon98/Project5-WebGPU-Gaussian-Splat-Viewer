@@ -1,6 +1,8 @@
 @group(0) @binding(0) var<uniform> camera: CameraUniforms;
 
-@group(1) @binding(0) var<storage, read> gaussians_list: array<Gaussian>;
+@group(1) @binding(1) var<storage, read> splats_list: array<Splat>;
+
+@group(1) @binding(2) var<storage, read> sort_indices: array<u32>;
 
 struct CameraUniforms {
     view: mat4x4<f32>,
@@ -17,46 +19,48 @@ struct Gaussian {
     scale: array<u32,2>
 }
 
+struct Splat {
+    //TODO: information defined in preprocess compute shader
+    mean_ndc: vec3<f32>,
+    cov_inv: mat2x2<f32>,
+    ssaabb_halfextent: vec2<f32>
+};
+
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
     //TODO: information passed from vertex shader to fragment shader
+    //if we were not using the same structs as vertex output/fragment input, these locations would make more sense
+    @location(0) cov_inv: vec3<f32>, //matrix can't be passed directlyas a location based vertex output
+    @location(1) color: vec4<f32> //tells the pipeline where the vertex shader writes the color and where the fragment shader receives it
 };
-
-// struct Splat {
-//     //TODO: information defined in preprocess compute shader
-// };
 
 @vertex
 fn vs_main(@builtin(vertex_index) in_vertex_index: u32, @builtin(instance_index) in_instance_index: u32) -> VertexOutput {
     //TODO: reconstruct 2D quad based on information from splat, pass 
    var out: VertexOutput;
 
-    let gaussian = gaussians_list[in_instance_index];
-    let a = unpack2x16float(gaussian.pos_opacity[0]);
-    let b = unpack2x16float(gaussian.pos_opacity[1]);
-    let pos = vec4<f32>(a.x, a.y, b.x, 1.);
+   //overlapping fragments are blended in the back to front order, even if their shader calculations finish in a different order
+    let splat = splats_list[sort_indices[in_instance_index]];
+    let corners = array<vec2<f32> ,4>(
+        vec2<f32>(-1.0,-1.0),
+        vec2<f32>(1.0,-1.0),
+        vec2<f32>(-1.0,1.0),
+        vec2<f32>(1.0,1.0)
+    );
 
-    var ndcPos = camera.proj * camera.view * pos;
-    ndcPos = ndcPos/ndcPos.w; //we do this now which is ok because the pipeline will divide by 1 anyway
+    let corner = corners[in_vertex_index];
 
-    //triangle strip order (reuses the previous triangle's last to vertices)
-    if(in_vertex_index == 0){
-        out.position = vec4<f32>(ndcPos.x-0.005,ndcPos.y-0.005,ndcPos.z,1.);
-    }
-    else if(in_vertex_index == 1){
-        out.position = vec4<f32>(ndcPos.x + 0.005,ndcPos.y-0.005,ndcPos.z,1.);
-    }
-    else if(in_vertex_index == 2){
-        out.position = vec4<f32>(ndcPos.x - 0.005,ndcPos.y+0.005,ndcPos.z,1.);
-    }
-    else{
-        out.position = vec4<f32>(ndcPos.x+0.005,ndcPos.y+0.005,ndcPos.z,1.);
-    }
+    out.position = vec4<f32>(splat.mean_ndc.x + corner.x * splat.ssaabb_halfextent.x,
+                                splat.mean_ndc.y + corner.y * splat.ssaabb_halfextent.y, 
+                                splat.mean_ndc.z, 
+                                1.0);
+    out.cov_inv = vec3<f32>(splat.cov_inv[0][0], splat.cov_inv[0][1], splat.cov_inv[1][1]);
+    out.color = vec4<f32>(splat.ssaabb_halfextent.x*2, splat.ssaabb_halfextent.y*2, 0, 1);
 
     return out;
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    return vec4<f32>(1.,0.,0.,1.);
+    return vec4<f32>(1.0, 0.0, 0.0, 1.0);//in.color;
 }
