@@ -14,7 +14,7 @@
 
 [![Watch the demo](https://img.youtube.com/vi/zuF_spSZdO0/hqdefault.jpg)](https://www.youtube.com/watch?v=zuF_spSZdO0)
 
-[Live Demo Link](https://lukekwon98.github.io/Project4-WebGPU-Forward-Plus-and-Clustered-Deferred/)
+[Live Demo Link](https://luke-kwon.com/Project5-WebGPU-Gaussian-Splat-Viewer/)
 
 ### Credits
 
