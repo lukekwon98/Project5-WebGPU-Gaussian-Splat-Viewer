@@ -12,11 +12,9 @@
 
 ### Video / Live Demo
 
-[![Watch the demo](https://img.youtube.com/vi/zuF_spSZdO0/hqdefault.jpg)](https://www.youtube.com/watch?v=zuF_spSZdO0)
-
 <a href="https://www.youtube.com/watch?v=zuF_spSZdO0">
   <img src="https://img.youtube.com/vi/zuF_spSZdO0/maxresdefault.jpg"
-       alt="Watch the demo" width="700">
+       alt="Watch the demo" width="750">
 </a>
 
 [Live Demo Link](https://luke-kwon.com/Project5-WebGPU-Gaussian-Splat-Viewer/)
