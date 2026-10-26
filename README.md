@@ -42,6 +42,8 @@ A WebGPU viewer for pretrained 3D Gaussian scenes, with point-cloud and Gaussian
 
 ## Performance Analysis
 
+### Scenes
+
 | Bicycle | Bicycle Cleaned | Bonsai |
 | :---: | :---: | :---: |
 | <img width="400" alt="Bicycle" src="https://github.com/user-attachments/assets/6dc4af81-2b55-4c0f-a855-03bb9f1e6535" /> | <img width="400" alt="Bicycle Cleaned" src="https://github.com/user-attachments/assets/99327adb-49de-4629-ae48-2c108d29cbf5" /> | <img width="400" alt="Bonsai" src="https://github.com/user-attachments/assets/94a1df7e-57f9-4692-9e83-24e7ae4bd724" /> |
