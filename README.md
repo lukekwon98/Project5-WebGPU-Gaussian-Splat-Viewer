@@ -93,7 +93,7 @@ This experiment toggles XY frustum rejection, using the existing 1.2× clip-spac
 
 Culling has the largest benefit for Bicycle, reducing GPU time by approximately 30% while Bicycle_Cleaned and Bonsai show a much smaller reduction.
 
-Early rejection avoids unnecessary covariance and color calculations, sorting entries, and vertex processing for off-screen Gaussians. The benefit depends on how much work can be rejected from the selected view, and these test results are consistent since Bicycle has gaussians populating the entire space around the camera, while Bonsai and Bicycle_Cleaned are small scenes where all Gaussians exist within the viewport in the first place.
+Early rejection avoids unnecessary covariance and color calculations, sorting entries, and vertex processing for off-screen Gaussians. The benefit depends on how much work can be rejected from the selected view, and these test results are consistent since Bicycle has gaussians populating the entire space around the camera, while Bonsai and Bicycle_Cleaned are small scenes where the majority of Gaussians exist within the viewport in the first place.
 
 ### Effect of Preprocessing Workgroup Size
 
