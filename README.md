@@ -29,7 +29,6 @@ A WebGPU viewer for pretrained 3D Gaussian scenes, with point-cloud and Gaussian
 - Depth-sorted Gaussian quads with exponential opacity falloff and alpha blending.
 - Indirect drawing based on the number of retained Gaussians.
 - Adjustable Gaussian scale and camera presets.
-- GPU timestamp benchmarks with a 5-second warmup and a 10-second measurement window.
 
 ## Rendering Pipeline
 
