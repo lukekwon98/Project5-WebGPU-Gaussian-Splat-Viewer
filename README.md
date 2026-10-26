@@ -1,6 +1,6 @@
 # Project5-WebGPU-Gaussian-Splat-Viewer
 
-**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 4**
+**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
 * Luke (Hyuk Che) Kwon
   * [LinkedIn](https://www.linkedin.com/in/hyukchekwon/), [Personal Website](https://lukekwon98.github.io/), [Github](https://github.com/lukekwon98)
