@@ -14,7 +14,7 @@
 
 <a href="https://www.youtube.com/watch?v=zuF_spSZdO0">
   <img src="https://img.youtube.com/vi/zuF_spSZdO0/maxresdefault.jpg"
-       alt="Watch the demo" width="750">
+       alt="Watch the demo" width="650">
 </a>
 
 [Live Demo Link](https://luke-kwon.com/Project5-WebGPU-Gaussian-Splat-Viewer/)
