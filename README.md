@@ -110,8 +110,6 @@ Early rejection avoids unnecessary covariance and color calculations, sorting en
 The results show little correlation to workgroup size, as the largest difference is only around 0.1 ms. Although 32 threads produces the lowest recorded time, this is mostly due to variance. 
 Workgroup size can affect GPU scheduling and resource occupancy, but in our case each preprocessing invocation handles one Gaussian, and all tested configurations perform the same overall computation. Similar hardware utilization across these sizes is one possible explanation. In addition, total timing includes sorting and rendering, which can dilute changes applied to preprocessing.
 
-
-
 ### Credits
 
 - [Vite](https://vitejs.dev/)
