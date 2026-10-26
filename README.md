@@ -42,6 +42,10 @@ A WebGPU viewer for pretrained 3D Gaussian scenes, with point-cloud and Gaussian
 
 ## Performance Analysis
 
+| Bicycle | Bicycle Cleaned | Bonsai |
+| :---: | :---: | :---: |
+| <img width="400" alt="Bicycle" src="https://github.com/user-attachments/assets/6dc4af81-2b55-4c0f-a855-03bb9f1e6535" /> | <img width="400" alt="Bicycle Cleaned" src="https://github.com/user-attachments/assets/99327adb-49de-4629-ae48-2c108d29cbf5" /> | <img width="400" alt="Bonsai" src="https://github.com/user-attachments/assets/94a1df7e-57f9-4692-9e83-24e7ae4bd724" /> |
+
 ### Test Baseline
 
 | Setting | Value |
@@ -51,7 +55,7 @@ A WebGPU viewer for pretrained 3D Gaussian scenes, with point-cloud and Gaussian
 | Gaussian multiplier | 1.0 |
 | Preprocessing workgroup size | 256 |
 | Timing method | WebGPU GPU timestamp queries |
-| Benchmark duration | 5-second warmup, followed by 10 seconds of sampling |
+| Benchmark duration | 5 second warmup, followed by 10 seconds of sampling |
 
 All timings are mean GPU times in milliseconds, so lower is better. Point-cloud timing covers its render pass, and total Gaussian timing spans the beginning of preprocessing through the end of splat rendering, including sorting and intervening GPU commands.
 
